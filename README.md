@@ -1,6 +1,7 @@
 # FeCare
 With an intention of **Fekar** (care in Hindi) towards the health of Indian women. 
-[Web App link](https://fecare.herokuapp.com/)
+[Web App link](https://fecare.herokuapp.com/)<br>
+*To view demo scroll to the end*
 
 Researchers have identified a bunch of districts in India that have a maximum prevalence of diabetes among women. At least 50 of the 640 districts studied have a high prevalence of diabetes — greater than one in every 10 among women.
 And hence, FeCare classifier model aims to detect diabetes in Indian women. The clasifier was trained using [Pima Indians Diabetes Dataset](https://www.kaggle.com/uciml/pima-indians-diabetes-database)
@@ -50,11 +51,72 @@ Due to this reason, an equal amount of data for 1s and0s were taken in the train
 
 - Now the two data frames(with 1s and 0s) were concatenated so that they can be accessed easily
 
+- Fixing missing values(zeros in al other variables except ‘Pregnancies’):
 
+***Missing values in  ‘Glucose’ =5 <br>
+  Missing values in  ‘BloodPressure’ =35 <br>
+  Missing values in  ‘SkinThickness’ =227 <br>
+  Missing values in  ‘Insulin’ =374 <br>
+  Missing values in  ‘BMI’ =11 <br>
+  Missing values in  ‘DiabetesPedigreeFunction’ =0 <br>
+  Missing values in  ‘Age’ =0***<br>
+  
+  These values were fixed using the following algorithm:<br>
+    Let’s say a data frame has 3 variables as shown below:
+    
+    
+<img src= "Graphics/table.JPG" width="250" height="250">
 
-# Unknown
+The missing value is **1st** value in **Var1**, now the **1st** values of **Var2** and **Var3** are noted, which are **500** and **0.35** respectively. Now we try to find similar values (500, 0.35) in **Var2** and **Var3**. Which in this case are **3rd** value in **Var2** and **0th** value in **Var3**. The missing value is then replaced by the average of Var1 values at these positions(3rd and 0th). In this case: (89+81)/2 = 85= **Var1(1)**<br>
+
+**Code:**<br>
+<img src= "Graphics/snippet.JPG" width="500" height="400">
+
+The above algorithm is used to fix missing values in the following way:
+
+- Glucose values from similar Age and Outcome values <code>(fix_miss_value(data, "Glucose", ["Age", "Outcome"])</code>
+- BloodPressure values from similar Age and Glucose values
+- BMI values from similar Age, BloodPressure and Glucose values
+- SkinThickness values from similar Age, Outcome, Glucose, BMI values
+The rest variables used in training(Age and DiabetesPedigreeFunction) had no missing values.
+
+- Scaling us the DiabetesPedigreeFunction values:<br>
+These values were less than ‘1’ while the other values were greater than 1. And hence these values were multiplied by ‘100’.
+
+- Splitting data into Training and Testing set:<br>
+  - For Training data, 300 entries with ‘0’ Outcome and 250 values with ‘1’ Outcome were taken. This collectively was 71% of the total data. Now the training data was ready.
+  - The remaining 29% of data was further split into the 13% testing and 13% validation dataset. 
+
+- Neural Network Definition(model_architecture.py):<br>
+***Network(<br>
+  (fc1): Linear(in_features=6, out_features=40, bias=True)<br>
+  (fc2): Linear(in_features=40, out_features=81, bias=True)<br>
+  (fc3): Linear(in_features=81, out_features=36, bias=True)<br>
+  (fc4): Linear(in_features=36, out_features=19, bias=True)<br>
+  (out): Linear(in_features=19, out_features=2, bias=True)<br>
+)***<br>
+The training data was passed to the above Network and was trained for 1250 epochs. The best Trained Network which had the least validation loss was saved and was further used to made predictions on test data. The training accuracy given by the best model was 96.36% and the test accuracy was 85% (*FeCare.ipynb*)<br>
+The pickle file('*FeCare.pkl*') of this best-trained model was saved and was further used to make predictions in the web-application.<br>
+
+# Web-Application(app.py):
+- General Instructions to user for providing required inputs.
+- A “Know” button for user to know how she can measure the Tricep Skinfold Thickness
+- Taking the required inputs(except Diabetes Pedigree Function)
+- Information about what Diabetes Pedigree Function is and how we can calculate that.
+- Taking input of Diaetes Pedigree Function if user already knows, else taking inputs of the relatives information for calculating diabetes pedigree function
+- A “Submit Info” button when the user is done inputting al the required information.
+- And finally the “Results” button which will display weather the user has diabetes or not. If the user is found diabetic, the user is adviced to do Glucose - Tolerence Test at the nearest laboratory to confirm results.
+
+<br>
+
+# Demo(when Diabetes Pedigree Function is unknown)
 ![Demo-DPF-Unknown](https://user-images.githubusercontent.com/50732558/96336365-d9cd8700-109c-11eb-8fec-d639258abddc.gif)
 
-# Known
+<br>
+<br>
+
+# Demo(when Diabetes Pedigree Function is known)
 ![Demo-DPF-Known](https://user-images.githubusercontent.com/50732558/96336398-1ac59b80-109d-11eb-88c3-3bccfadbd808.gif)
+
+
 
